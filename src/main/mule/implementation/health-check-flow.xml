@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="health-check-flowFlow" doc:id="e6805f38-71bd-43d9-8d58-6bf0793734d9" >
+		<logger level="INFO" doc:name="Logger" doc:id="b37c12bc-533f-4f4d-a101-ce2d2f7f8ff7" message="get:\health-check:uhub-sapi-config" />
+	</flow>
+</mule>
