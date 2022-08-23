@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd 
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
     <http:listener-config name="uhub-sapi-httpListenerConfig">
         <http:listener-connection host="0.0.0.0" port="8081" />
     </http:listener-config>
     <apikit:config name="uhub-sapi-config" api="uhub-sapi.raml" outboundHeadersMapName="outboundHeaders" httpStatusVarName="httpStatus" />
-    <configuration doc:name="Configuration" doc:id="864bd633-7471-47dd-8abc-4d777dcf043b" defaultErrorHandler-ref="global-error-handlerError_Handler" />
+    <configuration doc:name="Configuration" doc:id="864bd633-7471-47dd-8abc-4d777dcf043b" defaultErrorHandler-ref="global-error-handler" />
 	<flow name="uhub-sapi-main">
         <http:listener config-ref="uhub-sapi-httpListenerConfig" path="/api/*">
             <http:response statusCode="#[vars.httpStatus default 200]">
@@ -15,8 +16,9 @@
                 <http:headers>#[vars.outboundHeaders default {}]</http:headers>
             </http:error-response>
         </http:listener>
-        <apikit:router config-ref="uhub-sapi-config" />
-		<error-handler ref="global-error-handlerError_Handler" />
+		<set-variable doc:name="Set Variable" doc:id="0c416d5d-aa65-4c7b-9f48-ccdc656f361c" variableName="transactionId" value="#[attributes.headers.'x-transaction-id' default uuid()]"/>
+		<apikit:router config-ref="uhub-sapi-config" />
+		<error-handler ref="global-error-handler" />
     </flow>
     <flow name="put:\cases:application\json:uhub-sapi-config">
         <flow-ref doc:name="Flow Reference" doc:id="ec484cf5-b70b-42ea-b579-cdeb1637d582" name="put-case-updating-covid-casesFlow"/>
@@ -31,6 +33,6 @@
 		<flow-ref doc:name="Flow Reference" doc:id="69f34b64-9f5d-4c33-a2ba-af41790a14c5" name="get-case-by-national-idFlow"/>
     </flow>
     <flow name="post:\cases:application\json:uhub-sapi-config">
-		<flow-ref doc:name="Flow Reference" doc:id="d964d372-78ba-43b2-9b63-b165c875b41c" name="Add-new-covid-casesFlow"/>
+		<flow-ref doc:name="Flow Reference" doc:id="d964d372-78ba-43b2-9b63-b165c875b41c" name="add-new-covid-casesFlow"/>
     </flow>
 </mule>

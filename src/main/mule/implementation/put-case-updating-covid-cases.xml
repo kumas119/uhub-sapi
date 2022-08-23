@@ -12,7 +12,8 @@ output application/json
 ---
 {
   code: 200,
-  Message: "Successful case registration"
+  Message: "Successful case registration",
+  TransactionId: vars.transactionId
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
