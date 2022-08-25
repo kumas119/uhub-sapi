@@ -5,6 +5,37 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="put-case-updating-covid-casesFlow" doc:id="7bce4f9b-8cf0-4447-af29-115ba50744c2" >
+		<logger level="INFO" doc:name="Logger" doc:id="bb558fff-34dc-43e1-a5f5-ea624314f357" message="data with #[vars.transactionId] and #[payload] has been started"/>
+		<ee:transform doc:name="Transform Message" doc:id="08a15b6f-a382-423e-9067-19eba7551fd1" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"SOURCE" : payload.source as String default "",
+	"CASE_TYPE": payload.caseType as String default "",
+	"FIRST_NAME": payload.firstName as String default "",
+	"LAST_NAME" :payload.lastName as String default "",
+    "PHONE":payload.phone as String default "",
+	"EMAIL" :payload.email as String default "",
+	"DATE_OF_BIRTH":payload.dateOfBirth as String default "",
+	"NATIONAL_ID":payload.nationalID as String default "",
+    "NATIONAL_ID_TYPE" :payload.nationalIDType as String default "",
+	"STREET_ADDRESS": payload.address.streetAddress as String default "",
+	"CITY": payload.address.city as String default "",
+	"STATE": payload.address.state as String default "",
+	"POSTAL": payload.address.postal as String default "",
+    "COUNTRY": payload.address.country as String default "",
+     "CREATE_DATE": now() as DateTime as String {format:  "YYYY-MM-dd:HH:mm:ss:ms"},
+     "UPDATE_DATE":now() as DateTime as String {format: "YYYY-MM-dd:HH:mm:ss:ms"},
+	"CREATE_BY" :"Integration User",
+	"UPDATE_BY":"Integration User",
+	"TransactioId": vars.transactionId
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="72884a8d-0f24-4312-99ad-7ba8c7d9f076" name="update-covid-cases"/>
+		<logger level="INFO" doc:name="Logger" doc:id="c4af2ae3-065b-48fc-bef7-a3447d77f4e8" message="#[payload]" />
 		<ee:transform doc:name="Transform Message" doc:id="108e656a-51e9-4b9f-b60a-2bf74a800504" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -13,7 +44,7 @@ output application/json
 {
   code: 200,
   Message: "Successful case registration",
-  TransactionId: vars.transactionId
+  TransactioId: vars.transactionId
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>

@@ -5,33 +5,38 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="get-reportFlow" doc:id="38273cde-4eb3-4087-8d7b-3b40fc1c72c5" >
-		<ee:transform doc:name="Copy_of_Transform Message" doc:id="6f820f13-a962-4ace-952d-591150cc711e" >
+		<ee:transform doc:name="Transform Message" doc:id="8b10f95c-56d6-4636-869a-0db90ffa56f6" >
+			<ee:message >
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="dynamicQuery" ><![CDATA[if(!isEmpty(attributes.queryParams.state)) (
+	"select count(*) as count, case_type, state from cvd_case_master where upper(state) = '" ++ upper(attributes.queryParams.state) ++ "' group by case_type,state"
+) else (
+	"select count(*) as count, case_type, state from cvd_case_master group by case_type, state"
+)]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="60188f7a-4255-4a22-86d3-9bf72a0b5947" message="#[vars.dynamicQuery]"/>
+		<flow-ref doc:name="Flow Reference" doc:id="8df5fe9c-a00c-44dc-bc98-84dd7e88ad48" name="get-report-sub-flow"/>
+		<ee:transform doc:name="Transform Message" doc:id="6f820f13-a962-4ace-952d-591150cc711e" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
+fun vaccinatedByState(state) = (payload filter(($.STATE == state as String) and ($.CASE_TYPE == "vaccinated")) map {
+	COUNT: $.COUNT
+})[0]
 ---
-[
-  {
-    state: "texas",
-    report: {
-      total: "46744",
-      positive: "436744",
-      recovered: "433744",
-      death: "300",
-      vaccinated: "878484"
-    }
-  }, 
-  {
-    state: "florida",
-    report: {
-      total: "46744",
-      positive: "436744",
-      recovered: "433744",
-      death: "300",
-      vaccinated: "7847848"
-    }
-  }
-]]]></ee:set-payload>
+((payload groupBy($.STATE) mapObject {
+	caseReports: {
+		state: $$,
+		reports: {
+			total: ($.COUNT reduce $ + $$) - (vaccinatedByState($$).COUNT as Number default 0),
+			($ orderBy($.CASE_TYPE) map {
+				($.CASE_TYPE): $.COUNT
+			})
+		}
+	}
+}).*caseReports) default []]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 	</flow>

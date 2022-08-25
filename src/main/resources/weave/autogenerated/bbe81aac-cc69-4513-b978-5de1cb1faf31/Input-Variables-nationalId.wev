@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_bbe81aac_cc69_4513_b978_5de1cb1faf31_Input_Variables_nationalId = Any
+

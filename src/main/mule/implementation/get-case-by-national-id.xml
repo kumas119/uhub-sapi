@@ -1,65 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
-	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
-http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
 	<flow name="get-case-by-national-idFlow" doc:id="fe7bf948-909c-4f8f-81cc-1063931caf02" >
-		<ee:transform doc:name="Fetch-National-id-from-input" doc:id="0522c5be-366e-4f68-8e83-f70e06e103a4" >
-			<ee:variables >
-				<ee:set-variable variableName="nationalId" ><![CDATA[attributes.uriParams.'nationalId']]></ee:set-variable>
-			</ee:variables>
-		</ee:transform>
-		<ee:transform doc:name="Preparing-response" doc:id="a7adb4d3-6829-40e5-81b3-a5b3cc039006" >
-			<ee:message >
-				<ee:set-payload ><![CDATA[%dw 2.0
+		<set-variable value="#[attributes.uriParams.'nationalId']" doc:name="Set Variable" doc:id="51bc31af-66f4-494e-b134-ccc478a3cd0b" variableName="nationalId"/>
+		<flow-ref doc:name="fetch-case-by-national-id-sub-flow" doc:id="767e560d-dd8b-4789-8381-989bfbb0bd4c" name="get-data-by-national-id"/>
+		<choice doc:name="Choice" doc:id="2a54758c-b5ab-4473-bbae-3d6bd036f761" >
+			<when expression="#[sizeOf(payload)&gt;0]">
+				<ee:transform doc:name="Preparing-response" doc:id="a7adb4d3-6829-40e5-81b3-a5b3cc039006">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
 output application/json
 ---
-[
-  {
-    source: "Hospital1",
-    caseID: "456464",
-    caseType: "positive",
-    firstName: "John",
-    lastName: "Nixon",
-    phone: "541-754-3010",
-    email: "john@gmail.com",
-    dateOfBirth: "1989-04-26",
-    nationalID: "209-49-6193",
-    nationalIDType: "SSN",
-    address: {
-      streetAddress: "1600 Pennsylvania Avenue NW",
-      city: "Washington",
-      state: "DC",
-      postal: "20500",
-      country: "USA"
-    },
-    createDate: "2021-05-03",
-    updateDate: "2021-05-03"
-  }, 
-  {
-    source: "Hospital1",
-    caseID: "528293",
-    caseType: "negative",
-    firstName: "John",
-    lastName: "Nixon",
-    phone: "541-754-3010",
-    email: "john@gmail.com",
-    dateOfBirth: "1989-04-26",
-    nationalID: "209-49-6193",
-    nationalIDType: "SSN",
-    address: {
-      streetAddress: "1600 Pennsylvania Avenue NW",
-      city: "Washington",
-      state: "DC",
-      postal: "20500",
-      country: "USA"
-    },
-    createDate: "2020-12-14",
-    updateDate: "2020-12-14"
-  }
-]]]></ee:set-payload>
+payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+			</when>
+			<otherwise >
+				<ee:transform doc:name="Transform Message" doc:id="9b778615-8da0-4067-a660-2eb5591e0504" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"code": 404,
+	"message": "Resource not found",
+	"description": "The server has not found anything matching the Request-URI",
+	"dateTime": now() as String { format: "yyyy-MM-dd'T'HH:mm:ss'Z'" },
+	"transactionId": vars.transactionId
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<logger level="INFO" doc:name="Logger" doc:id="9bfd693f-13fe-4572-bb4d-9e0b241f0a7e" message='transactionID: #[vars.transactionId], correlationID, message: Completed get covid case by national id flow, payload: #[payload]"'/>
 	</flow>
 </mule>

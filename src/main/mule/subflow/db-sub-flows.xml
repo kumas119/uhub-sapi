@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="update-covid-cases" doc:id="7dc64895-5753-45b1-8bba-83808d5fd21e" >
+		<logger level="INFO" doc:name="Logger" doc:id="172e36a4-7b9e-4737-aa48-ede6bea5055e" message="data with #[vars.transactionId] and #[payload] is came for update"/>
+		<db:update doc:name="Update" doc:id="deec0ae4-cf65-47d7-8fc9-abe0f8fa62c1" config-ref="Database_Config" target="updateData">
+			<reconnect frequency="20000" count="5" />
+			<db:sql ><![CDATA[update CVD_CASE_MASTER set
+	SOURCE = :SOURCE,
+	CASE_TYPE = :CASE_TYPE,
+	FIRST_NAME = :FIRST_NAME,
+	LAST_NAME = :LAST_NAME,
+	PHONE = :PHONE,
+	EMAIL = :EMAIL,
+	DATE_OF_BIRTH = :DATE_OF_BIRTH,
+	NATIONAL_ID_TYPE = :NATIONAL_ID_TYPE,
+	STREET_ADDRESS = :STREET_ADDRESS,
+	CITY = :CITY,
+	STATE = :STATE,
+	POSTAL = :POSTAL,
+	COUNTRY = :COUNTRY,
+	CREATE_DATE = :CREATE_DATE,
+	UPDATE_DATE = :UPDATE_DATE,
+	CREATE_BY = :CREATE_BY,
+	UPDATE_BY = :UPDATE_BY
+    where NATIONAL_ID = :NATIONAL_ID]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"SOURCE" : payload.SOURCE,
+	"CASE_TYPE": payload.CASE_TYPE,
+	"FIRST_NAME": payload.FIRST_NAME,
+	"LAST_NAME" :payload.LAST_NAME,
+    "PHONE":payload.PHONE,
+	"EMAIL" :payload.EMAIL,
+	"DATE_OF_BIRTH":payload.DATE_OF_BIRTH,
+	"NATIONAL_ID":payload.NATIONAL_ID,
+    "NATIONAL_ID_TYPE" :payload.NATIONAL_ID_TYPE,
+	"STREET_ADDRESS": payload.STREET_ADDRESS,
+	"CITY": payload.CITY,
+	"STATE": payload.STATE,
+	"POSTAL": payload.POSTAL,
+    "COUNTRY": payload.COUNTRY,
+     "CREATE_DATE": payload.CREATE_DATE,
+     "UPDATE_DATE": payload.UPDATE_DATE,
+	"CREATE_BY" :payload.CREATE_BY,
+	"UPDATE_BY":payload.UPDATE_BY
+}]]]></db:input-parameters>
+		</db:update>
+		<logger level="INFO" doc:name="Logger" doc:id="86900830-649d-4caa-84cb-79ef6ec4a4e4" message="update process has been comepleted with  #[vars.transactionId] and #[payload]"/>
+	</flow>
+	<flow name="add-new-covid-case" doc:id="905f0508-6afa-40f8-96ef-9134c03f8cb2" >
+		<logger level="INFO" doc:name="Logger" doc:id="5befc754-a55b-4e3e-a28e-92fd2da9d3a2" message="data with #[vars.transactionId] and #[payload] is came for insert"/>
+		<db:insert doc:name="Insert" doc:id="d4878f62-eac4-4a37-a527-1c1d399dbb14" config-ref="Database_Config" autoGenerateKeys="true">
+			<db:sql ><![CDATA[insert into CVD_CASE_MASTER
+(
+    SOURCE,
+	CASE_TYPE,
+	FIRST_NAME,
+	LAST_NAME,
+    PHONE,
+	EMAIL,
+    DATE_OF_BIRTH,
+	NATIONAL_ID,
+	NATIONAL_ID_TYPE,
+	STREET_ADDRESS,
+	CITY,
+	STATE,
+	POSTAL,
+	COUNTRY,
+	CREATE_DATE,
+	UPDATE_DATE,
+	CREATE_BY,
+	UPDATE_BY)
+values
+	(
+    :SOURCE,
+	:CASE_TYPE,
+	:FIRST_NAME,
+	:LAST_NAME,
+    :PHONE,
+	:EMAIL,
+    :DATE_OF_BIRTH,
+	:NATIONAL_ID,
+	:NATIONAL_ID_TYPE,
+	:STREET_ADDRESS,
+	:CITY,
+	:STATE,
+	:POSTAL,
+	:COUNTRY,
+	:CREATE_DATE,
+	:UPDATE_DATE,
+	:CREATE_BY,
+	:UPDATE_BY)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"SOURCE" : payload.SOURCE,
+	"CASE_TYPE": payload.CASE_TYPE,
+	"FIRST_NAME": payload.FIRST_NAME,
+	"LAST_NAME" :payload.LAST_NAME,
+    "PHONE":payload.PHONE,
+	"EMAIL" :payload.EMAIL,
+	"DATE_OF_BIRTH":payload.DATE_OF_BIRTH,
+	"NATIONAL_ID":payload.NATIONAL_ID,
+    "NATIONAL_ID_TYPE" :payload.NATIONAL_ID_TYPE,
+	"STREET_ADDRESS": payload.STREET_ADDRESS,
+	"CITY": payload.CITY,
+	"STATE": payload.STATE,
+	"POSTAL": payload.POSTAL,
+    "COUNTRY": payload.COUNTRY,
+     "CREATE_DATE": payload.CREATE_DATE,
+     "UPDATE_DATE": payload.UPDATE_DATE,
+	"CREATE_BY" :payload.CREATE_BY,
+	"UPDATE_BY":payload.UPDATE_BY
+}]]]></db:input-parameters>
+			<db:auto-generated-keys-column-names >
+				<db:auto-generated-keys-column-name value="CASE_ID" />
+			</db:auto-generated-keys-column-names>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="5c21e11e-b434-4331-ae13-61ee19c2e414" message="data with #[vars.transactionId] and #[payload] is came for insert"/>
+	</flow>
+	<flow name="get-data-by-national-id" doc:id="bbe81aac-cc69-4513-b978-5de1cb1faf31" >
+		<logger level="INFO" doc:name="Logger" doc:id="f5c083a3-1d15-43fd-9a7e-d9b5a5fe035e" message="data with #[vars.transactionId] and #[vars.nationalId] is came for data retrieve"/>
+		<db:select doc:name="Select" doc:id="fb185a31-cf2c-4420-8c77-2b405a70e4f2" config-ref="Database_Config">
+			<db:sql ><![CDATA[select 
+SOURCE,
+CASE_TYPE,
+FIRST_NAME,
+LAST_NAME,
+PHONE,  
+EMAIL, 
+DATE_OF_BIRTH,
+NATIONAL_ID,
+NATIONAL_ID_TYPE,  
+STREET_ADDRESS,  
+CITY,
+STATE,
+POSTAL,
+COUNTRY,  
+CREATE_DATE, 
+UPDATE_DATE,
+CREATE_BY,  
+UPDATE_BY
+from CVD_CASE_MASTER
+where NATIONAL_ID = :nationalId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{	
+	nationalId : vars.nationalId	
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="a9beb129-4b2f-4135-bbb2-67ca140c8fa9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	source: payload01.SOURCE,
+	caseType: payload01.CASE_TYPE,
+	firstName: payload01.FIRST_NAME,
+	lastName: payload01.LAST_NAME,
+	phone: payload01.PHONE,
+	email: payload01.EMAIL default "",
+	dateOfBirth: payload01.DATE_OF_BIRTH,
+	nationalID: payload01.NATIONAL_ID,
+	nationalIDType: payload01.NATIONAL_ID_TYPE,
+	address: {
+		streetAddress: payload01.STREET_ADDRESS,
+		city: payload01.CITY,
+		state: payload01.STATE,
+		postal: payload01.POSTAL,
+		country: payload01.COUNTRY
+	},
+	createDate: payload01.CREATE_DATE,
+	updateDate: payload01.UPDATE_DATE
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="a5619bf8-dc29-433e-8e4e-f3f8eb85c762" />
+	</flow>
+	<flow name="get-report-sub-flow" doc:id="efdb91ba-89f6-4b26-abce-1cc069a15157" >
+		<logger level="INFO" doc:name="Logger" doc:id="7d10d7d3-e30c-49de-ac0d-923f2d3a8f48" message="#[vars.dynamicQuery]"/>
+		<db:select doc:name="Select" doc:id="b482eb48-b612-49ea-8a3c-fa45a65f59d7" config-ref="Database_Config">
+			<db:sql ><![CDATA[#[vars.dynamicQuery]]]></db:sql>
+		</db:select>
+		<logger level="INFO" doc:name="Logger" doc:id="f920aaff-d025-4937-a7a3-d27962d0aba6" message="Process started"/>
+	</flow>
+</mule>

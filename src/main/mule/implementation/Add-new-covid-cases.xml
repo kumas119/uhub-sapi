@@ -5,13 +5,44 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
 	<flow name="add-new-covid-casesFlow" doc:id="1f13cc89-426c-49d0-87e9-6b3cb8ac7dd9" >
-		<ee:transform doc:name="Transform Message" doc:id="54659f13-d370-4e8d-82be-890a58db8c5d" >
+		<logger level="INFO" doc:name="Logger" doc:id="953beaed-6c78-4120-872f-22f815e35dda" message="data with #[vars.transactionId] and #[payload] has been started" />
+		<ee:transform doc:name="Transform Message" doc:id="681dcaf1-747c-4ceb-9d3f-e7a1ee1a1f39" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
 output application/json
 ---
 {
-  caseID: "672322"
+	"SOURCE" : payload.source as String default "",
+	"CASE_TYPE": payload.caseType as String default "",
+	"FIRST_NAME": payload.firstName as String default "",
+	"LAST_NAME" :payload.lastName as String default "",
+    "PHONE":payload.phone as String default "",
+	"EMAIL" :payload.email as String default "",
+	"DATE_OF_BIRTH":payload.dateOfBirth as Date,
+	"NATIONAL_ID":payload.nationalID as String default "",
+    "NATIONAL_ID_TYPE" :payload.nationalIDType as String default "",
+	"STREET_ADDRESS": payload.address.streetAddress as String default "",
+	"CITY": payload.address.city as String default "",
+	"STATE": payload.address.state as String default "",
+	"POSTAL": payload.address.postal as String default "",
+    "COUNTRY": payload.address.country as String default "",
+     "CREATE_DATE": now() as DateTime as String {format: "yyyy-MM-dd hh:mm:ss"},
+     "UPDATE_DATE":now() as DateTime as String {format: "yyyy-MM-dd hh:mm:ss"},
+	"CREATE_BY" :"Integration User",
+	"UPDATE_BY":"Integration User"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<set-variable value="#[payload]" doc:name="Set Variable" doc:id="62005ce1-7fcf-4859-a2f7-22fd4178ccc8" variableName="newCovidcase"/>
+		<flow-ref doc:name="Flow Reference" doc:id="8e3b48fb-ca0a-4201-81c5-f24ee27f5369" name="add-new-covid-case"/>
+		<logger level="INFO" doc:name="Logger" doc:id="375e7091-2d2b-4c0a-9059-9432e1864db3" message="data with transactionId -  #[vars.transactionId] and  payload is - #[vars.newCovidcase] has been completed and the caseId is - #[payload[0].CASE_ID]"/>
+		<ee:transform doc:name="Transform Message" doc:id="54659f13-d370-4e8d-82be-890a58db8c5d">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  caseID: payload[0].CASE_ID as String
 }]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
